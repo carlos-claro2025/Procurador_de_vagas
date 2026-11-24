@@ -1,3 +1,4 @@
-.env
+﻿.env
 .firecrawl/
 __pycache__/
+*.py[cod]

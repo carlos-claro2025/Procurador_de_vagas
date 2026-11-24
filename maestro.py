@@ -6,7 +6,10 @@ Fase 1: Saudação, verificação de perfil, quiz, persistência e menu principa
 """
 
 import os
+import subprocess
 import sys
+import json
+import shutil
 from datetime import datetime
 from pathlib import Path
 
@@ -55,6 +58,181 @@ def carregar_env():
                 continue
             chave, valor = linha.split("=", 1)
             os.environ.setdefault(chave.strip(), valor.strip().strip("\"'"))
+
+
+def executar_coach():
+    print("Executando COACH...")
+    try:
+        resultado = subprocess.run(
+            [sys.executable, os.path.join(PROJECT_ROOT, "coach.py")],
+            cwd=PROJECT_ROOT,
+            timeout=900,
+        )
+        if resultado.returncode != 0:
+            print("O COACH encerrou com um erro.")
+    except subprocess.TimeoutExpired:
+        print("A simulacao excedeu o tempo limite.")
+    except OSError as exc:
+        print(f"Nao foi possivel iniciar o COACH: {exc}")
+    print()
+
+
+def exibir_detalhes_curso(curso):
+    titulo = curso.get("titulo") or "Titulo indisponivel"
+    url = curso.get("url")
+    if not url:
+        print("Erro: este curso nao possui uma URL valida.")
+        print()
+        return
+
+    executable = shutil.which("firecrawl")
+    if executable is None:
+        print("Erro: Firecrawl CLI nao encontrado.")
+        print()
+        return
+
+    cache_dir = os.path.join(PROJECT_ROOT, ".firecrawl")
+    os.makedirs(cache_dir, exist_ok=True)
+    output_path = os.path.join(cache_dir, "course-detail.md")
+    child_env = os.environ.copy()
+    child_env.pop("FIRECRAWL_API_KEY", None)
+
+    print(f"CURATOR - abrindo o curso: {titulo}")
+    print(f"Plataforma: {curso.get('plataforma', 'indisponivel')}")
+    print(f"URL: {url}")
+    print()
+    try:
+        resultado = subprocess.run(
+            [
+                executable,
+                "scrape",
+                url,
+                "--json",
+                "--only-main-content",
+                "--format",
+                "markdown",
+                "-o",
+                output_path,
+            ],
+            cwd=PROJECT_ROOT,
+            env=child_env,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+    except subprocess.TimeoutExpired:
+        print("Erro: o tempo limite foi excedido ao abrir os detalhes do curso.")
+        print()
+        return
+
+    if resultado.returncode != 0:
+        mensagem = (resultado.stderr or resultado.stdout or "erro desconhecido").strip()
+        print(f"Erro ao abrir os detalhes do curso: {mensagem[:500]}")
+        print()
+        return
+
+    try:
+        with open(output_path, "r", encoding="utf-8") as arquivo:
+            conteudo = arquivo.read().strip()
+    except OSError as exc:
+        print(f"Erro ao ler os detalhes do curso: {exc}")
+        print()
+        return
+
+    if conteudo.startswith("{"):
+        try:
+            payload = json.loads(conteudo)
+            if isinstance(payload, dict):
+                data = payload.get("data")
+                nested_markdown = data.get("markdown") if isinstance(data, dict) else None
+                conteudo = (
+                    payload.get("markdown")
+                    or payload.get("content")
+                    or nested_markdown
+                    or conteudo
+                )
+        except json.JSONDecodeError:
+            pass
+
+    if not conteudo:
+        print("Nao foi possivel obter o conteudo detalhado deste curso.")
+        print()
+        return
+
+    limite = 12000
+    trecho = " ".join(conteudo.split())
+    if len(trecho) > limite:
+        trecho = trecho[:limite].rstrip() + "..."
+
+    print("=== DETALHES DO CURSO ===")
+    print(texto_seguro_para_console(trecho))
+    print()
+
+
+def executar_curator():
+    print("Executando CURATOR...")
+    try:
+        resultado = subprocess.run(
+            [sys.executable, os.path.join(PROJECT_ROOT, "curator.py")],
+            cwd=PROJECT_ROOT,
+            timeout=300,
+        )
+        if resultado.returncode != 0:
+            print("O CURATOR encerrou com um erro.")
+            print()
+            return
+    except subprocess.TimeoutExpired:
+        print("A busca do CURATOR excedeu o tempo limite.")
+        print()
+        return
+    except OSError as exc:
+        print(f"Nao foi possivel iniciar o CURATOR: {exc}")
+        print()
+        return
+
+    resultado_path = os.path.join(DATA_DIR, "course-results.json")
+    if not os.path.exists(resultado_path):
+        print("Nenhum resultado de curso foi salvo.")
+        print()
+        return
+
+    try:
+        with open(resultado_path, "r", encoding="utf-8") as arquivo:
+            payload = json.load(arquivo)
+    except (json.JSONDecodeError, OSError) as exc:
+        print(f"Erro ao ler os resultados do CURATOR: {exc}")
+        print()
+        return
+
+    cursos = payload.get("courses", []) if isinstance(payload, dict) else []
+    if not cursos:
+        print("Nenhum curso encontrado para selecionar.")
+        print()
+        return
+
+    print("=== CURSOS ENCONTRADOS ===")
+    for indice, curso in enumerate(cursos, 1):
+        print(f"{indice}. {curso.get('titulo', 'Titulo indisponivel')} "
+              f"- {curso.get('plataforma', 'Plataforma indisponivel')}")
+        print(f"   Lacuna: {curso.get('lacuna', 'indisponivel')}")
+        print(f"   URL: {curso.get('url', 'indisponivel')}")
+    print()
+    print("Digite o numero do curso para ver os detalhes.")
+    print("Digite V para voltar ao menu.")
+    while True:
+        escolha = input("Curso selecionado: ").strip().upper()
+        if escolha == "V":
+            print()
+            return
+        try:
+            indice = int(escolha)
+            if 1 <= indice <= len(cursos):
+                exibir_detalhes_curso(cursos[indice - 1])
+                print("Digite o numero de outro curso ou V para voltar ao menu.")
+                continue
+        except ValueError:
+            pass
+        print("Opcao invalida. Escolha um numero da lista ou V.")
 
 FUNCOES_ALVO = {
     "Desenvolvimento Backend": {
@@ -435,6 +613,37 @@ def aplicar_quiz():
     faixa_salarial = fazer_pergunta("Pergunta 5 - Qual sua faixa salarial desejada?")
     print()
 
+    competencias_existentes = []
+    perfil_atual = carregar_perfil()
+    if perfil_atual:
+        dentro_competencias = False
+        for linha in perfil_atual.splitlines():
+            if linha.strip() == "competencias_dominadas:":
+                dentro_competencias = True
+            elif dentro_competencias and linha.startswith("  - "):
+                competencias_existentes.append(linha[4:].strip())
+            elif dentro_competencias:
+                break
+            elif linha.startswith("competencias_dominadas:"):
+                valor = linha.split(":", 1)[1].strip()
+                if valor:
+                    competencias_existentes.extend(
+                        item.strip() for item in valor.split(",") if item.strip()
+                    )
+
+    texto_competencias = ", ".join(competencias_existentes)
+    if texto_competencias:
+        print("Pergunta 6 - Quais competencias voce ja domina?")
+        print(f"Atual: {texto_competencias}")
+        print("Separe por virgula ou pressione Enter para manter.")
+        resposta_competencias = input("> ").strip()
+        competencias = resposta_competencias if resposta_competencias else texto_competencias
+    else:
+        print("Pergunta 6 - Quais competencias voce ja domina?")
+        print("Separe por virgula ou pressione Enter para nenhuma.")
+        competencias = input("> ").strip()
+    print()
+
     funcoes = FUNCOES_ALVO.get(area, {}).get(senioridade, [])
     data_atualizacao = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -444,6 +653,7 @@ def aplicar_quiz():
         f"modalidade: {modalidade}\n"
         f"localizacao: {localizacao}\n"
         f"faixa_salarial: {faixa_salarial}\n"
+        f"competencias_dominadas: {competencias.strip() if competencias.strip().lower() not in ('', 'nenhuma') else 'Nenhuma'}\n"
         f"funcoes_alvo:\n"
     )
     for funcao in funcoes:
@@ -516,6 +726,63 @@ def texto_seguro_para_console(texto):
     return str(texto)
 
 
+def vaga_para_dicionario(vaga, indice=None):
+    if isinstance(vaga, dict):
+        item = vaga
+        titulo = item.get("title") or item.get("titulo") or "Titulo nao informado"
+        url = item.get("url") or "URL nao informada"
+        descricao = item.get("description") or item.get("descricao") or ""
+    else:
+        titulo = getattr(vaga, "title", None) or "Titulo nao informado"
+        url = getattr(vaga, "url", None) or "URL nao informada"
+        descricao = (
+            getattr(vaga, "description", None)
+            or getattr(vaga, "markdown", None)
+            or ""
+        )
+        item = {
+            "title": titulo,
+            "company": getattr(vaga, "company", None),
+            "location": getattr(vaga, "location", None),
+            "work_mode": getattr(vaga, "work_mode", None),
+            "seniority": getattr(vaga, "seniority", None),
+            "salary": getattr(vaga, "salary", None),
+            "requirements": getattr(vaga, "requirements", []) or [],
+            "posted_at": getattr(vaga, "posted_at", None),
+            "source": getattr(vaga, "source", None),
+            "collected_by": getattr(vaga, "collected_by", None),
+            "collected_at": getattr(vaga, "collected_at", None),
+            "url": url,
+        }
+
+    descricao = " ".join(str(descricao).split())
+    if len(descricao) > 500:
+        descricao = descricao[:497].rstrip() + "..."
+
+    result = {"title": titulo, "description": descricao, "url": url}
+    for key in (
+        "company", "location", "work_mode", "seniority", "salary",
+        "requirements", "posted_at", "source", "collected_by", "collected_at",
+    ):
+        result[key] = item.get(key) if isinstance(item, dict) else None
+    if indice is not None:
+        result = {"numero": indice, **result}
+    return result
+
+
+def exibir_resultado_vagas(vagas):
+    print("=== RESULTADO SCOUT (JSON) ===")
+    formato_json = {
+        "total": len(vagas),
+        "jobs": [
+            vaga_para_dicionario(vaga, indice)
+            for indice, vaga in enumerate(vagas, 1)
+        ],
+    }
+    print(json.dumps(formato_json, ensure_ascii=False, indent=2))
+    print()
+
+
 def exibir_detalhes_vaga(client, vaga):
     titulo = getattr(vaga, "title", None) or "Título não informado"
     url = getattr(vaga, "url", None)
@@ -559,14 +826,219 @@ def exibir_detalhes_vaga(client, vaga):
     print()
 
 
+def exibir_detalhes_vaga_por_cli(vaga):
+    titulo = vaga.get("title") or "Titulo nao informado"
+    url = vaga.get("url")
+    if not url:
+        print("Erro: esta vaga nao possui uma URL valida.")
+        print()
+        return
+
+    executable = shutil.which("firecrawl")
+    if executable is None:
+        print("Erro: Firecrawl CLI nao encontrado.")
+        print()
+        return
+
+    cache_dir = os.path.join(PROJECT_ROOT, ".firecrawl")
+    os.makedirs(cache_dir, exist_ok=True)
+    output_path = os.path.join(cache_dir, "job-detail.md")
+    child_env = os.environ.copy()
+    child_env.pop("FIRECRAWL_API_KEY", None)
+
+    print(f"SCOUT - abrindo a vaga: {titulo}")
+    print(f"URL: {url}")
+    print()
+    try:
+        resultado = subprocess.run(
+            [
+                executable,
+                "scrape",
+                url,
+                "--json",
+                "--only-main-content",
+                "--format",
+                "markdown",
+                "-o",
+                output_path,
+            ],
+            cwd=PROJECT_ROOT,
+            env=child_env,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+    except subprocess.TimeoutExpired:
+        print("Erro: o tempo limite foi excedido ao abrir os detalhes da vaga.")
+        print()
+        return
+
+    if resultado.returncode != 0:
+        mensagem = (resultado.stderr or resultado.stdout or "erro desconhecido").strip()
+        print(f"Erro ao abrir os detalhes da vaga: {mensagem[:500]}")
+        print()
+        return
+
+    try:
+        with open(output_path, "r", encoding="utf-8") as arquivo:
+            conteudo = arquivo.read().strip()
+    except OSError as exc:
+        print(f"Erro ao ler os detalhes da vaga: {exc}")
+        print()
+        return
+
+    if conteudo.startswith("{"):
+        try:
+            payload = json.loads(conteudo)
+            if isinstance(payload, dict):
+                data = payload.get("data")
+                nested_markdown = data.get("markdown") if isinstance(data, dict) else None
+                conteudo = (
+                    payload.get("markdown")
+                    or payload.get("content")
+                    or nested_markdown
+                    or conteudo
+                )
+        except json.JSONDecodeError:
+            pass
+
+    if not conteudo:
+        print("Nao foi possivel obter o conteudo detalhado desta vaga.")
+        print()
+        return
+
+    limite = 12000
+    trecho = " ".join(conteudo.split())
+    if len(trecho) > limite:
+        trecho = trecho[:limite].rstrip() + "..."
+
+    print("=== DETALHES DA VAGA ===")
+    print(texto_seguro_para_console(trecho))
+    print()
+
+
+def buscar_vagas_por_cli(perfil_texto):
+    executable = shutil.which("firecrawl")
+    if executable is None:
+        print("Erro: Firecrawl CLI nao encontrado.")
+        print("Instale com: npm install -g firecrawl-cli@latest")
+        print()
+        return
+
+    query = montar_query_vagas(perfil_texto)
+    child_env = os.environ.copy()
+    child_env.pop("FIRECRAWL_API_KEY", None)
+    cache_dir = os.path.join(PROJECT_ROOT, ".firecrawl")
+    os.makedirs(cache_dir, exist_ok=True)
+    output_path = os.path.join(cache_dir, "scout-results.json")
+
+    print(f"SCOUT - buscando vagas pelo CLI: {query}")
+    print()
+    try:
+        resultado = subprocess.run(
+            [
+                executable,
+                "search",
+                query,
+                "--limit",
+                "10",
+                "--json",
+                "-o",
+                output_path,
+            ],
+            cwd=PROJECT_ROOT,
+            env=child_env,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+    except subprocess.TimeoutExpired:
+        print("Erro: a busca pelo Firecrawl CLI excedeu o tempo limite.")
+        print()
+        return
+
+    if resultado.returncode != 0:
+        mensagem = (resultado.stderr or resultado.stdout or "erro desconhecido").strip()
+        print(f"Erro no Firecrawl CLI: {mensagem[:500]}")
+        print()
+        return
+
+    if not os.path.exists(output_path):
+        print("Erro: o Firecrawl CLI nao gravou o resultado da busca.")
+        print()
+        return
+
+    try:
+        payload = json.loads(open(output_path, "r", encoding="utf-8").read())
+    except (json.JSONDecodeError, OSError) as exc:
+        print(f"Erro ao ler o resultado do SCOUT: {exc}")
+        print()
+        return
+
+    web_items = payload.get("data", {}).get("web", []) if isinstance(payload, dict) else []
+    if not isinstance(web_items, list):
+        web_items = []
+
+    vagas = []
+    for item in web_items:
+        if not isinstance(item, dict):
+            continue
+        url = item.get("url")
+        if not isinstance(url, str) or not url:
+            continue
+        vagas.append({
+            "title": item.get("title") or "Titulo nao informado",
+            "company": None,
+            "location": None,
+            "work_mode": "nao informado",
+            "seniority": None,
+            "salary": None,
+            "description": item.get("description") or item.get("markdown") or "",
+            "requirements": [],
+            "posted_at": None,
+            "source": "native-web",
+            "url": url,
+            "collected_by": "firecrawl-cli",
+            "collected_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        })
+
+    if not vagas:
+        print("Nenhuma vaga foi encontrada pelo Firecrawl CLI.")
+        print()
+        return
+
+    garantir_diretorio_data()
+    job_output = os.path.join(DATA_DIR, "job-results.json")
+    with open(job_output, "w", encoding="utf-8") as arquivo:
+        json.dump({"jobs": vagas}, arquivo, ensure_ascii=False, indent=2)
+
+    exibir_resultado_vagas(vagas)
+
+    print(f"Resultados normalizados salvos em: data/job-results.json")
+    print()
+    print("Digite o numero da vaga para ver os detalhes.")
+    print("Digite V para voltar ao menu.")
+    while True:
+        escolha = input("Vaga selecionada: ").strip().upper()
+        if escolha == "V":
+            print()
+            return
+        try:
+            indice = int(escolha)
+            if 1 <= indice <= len(vagas):
+                exibir_detalhes_vaga_por_cli(vagas[indice - 1])
+                print("Digite o numero de outra vaga ou V para voltar ao menu.")
+                continue
+        except ValueError:
+            pass
+        print("Opcao invalida. Escolha um numero da lista ou V.")
+
+
 def buscar_vagas(perfil_texto):
     carregar_env()
     api_key = os.environ.get("FIRECRAWL_API_KEY")
     if not api_key:
-        print("Erro: FIRECRAWL_API_KEY não encontrada.")
-        print("Configure o projeto com: firecrawl env")
-        print()
-        return
+        return buscar_vagas_por_cli(perfil_texto)
 
     try:
         from firecrawl import Firecrawl
@@ -590,7 +1062,12 @@ def buscar_vagas(perfil_texto):
             timeout=300000,
         )
     except Exception as exc:
-        print(f"Erro na busca do Firecrawl: {exc}")
+        mensagem = str(exc)
+        if "unauthorized" in mensagem.lower() or "invalid token" in mensagem.lower():
+            print("Token do SDK inválido. Usando o Firecrawl CLI autenticado.")
+            print()
+            return buscar_vagas_por_cli(perfil_texto)
+        print(f"Erro na busca do Firecrawl: {mensagem}")
         print()
         return
 
@@ -600,23 +1077,17 @@ def buscar_vagas(perfil_texto):
         print()
         return
 
-    for indice, vaga in enumerate(vagas, 1):
-        titulo = getattr(vaga, "title", None) or "Título não informado"
-        url = getattr(vaga, "url", None) or "URL não informada"
-        descricao = (
-            getattr(vaga, "description", None)
-            or getattr(vaga, "markdown", None)
-            or ""
-        )
-        descricao = " ".join(descricao.split())
-        if len(descricao) > 220:
-            descricao = descricao[:217] + "..."
-
-        print(texto_seguro_para_console(f"{indice}. {titulo}"))
-        print(texto_seguro_para_console(f"URL: {url}"))
-        if descricao:
-            print(texto_seguro_para_console(f"Resumo: {descricao}"))
-        print()
+    garantir_diretorio_data()
+    job_output = os.path.join(DATA_DIR, "job-results.json")
+    vagas_normalizadas = [
+        vaga_para_dicionario(vaga)
+        for vaga in vagas
+    ]
+    with open(job_output, "w", encoding="utf-8") as arquivo:
+        json.dump({"jobs": vagas_normalizadas}, arquivo, ensure_ascii=False, indent=2)
+    exibir_resultado_vagas(vagas)
+    print("Resultados normalizados salvos em: data/job-results.json")
+    print()
 
     print("Digite o número da vaga para ver os detalhes.")
     print("Digite V para voltar ao menu.")
@@ -656,11 +1127,9 @@ def main():
         if opcao == "A":
             buscar_vagas(perfil)
         elif opcao == "B":
-            print("Buscar cursos (CURATOR) - funcionalidade reservada para fase futura.")
-            print()
+            executar_curator()
         elif opcao == "C":
-            print("Simular entrevista (COACH) - funcionalidade reservada para fase futura.")
-            print()
+            executar_coach()
         elif opcao == "D":
             aplicar_quiz()
             perfil = carregar_perfil()

@@ -1,10 +1,11 @@
-nome_area: Outro
+nome_area: Gestão de Produtos
 senioridade: Júnior
-modalidade: Tanto faz
-localizacao: Goiânia
-faixa_salarial: 3500
+modalidade: Remoto
+localizacao: goiania
+faixa_salarial: 2000
+competencias_dominadas: gestao de pessoas, trabalho em equipe
 funcoes_alvo:
-  - Estagiário
-  - Assistente
-  - Trainee
-data_atualizacao: 2026-11-23 23:15:50
+  - Analista de Produto
+  - Product Owner Jr
+  - Gerente de Produto Associado
+data_atualizacao: 2026-11-20 20:47:28

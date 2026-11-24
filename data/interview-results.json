@@ -1,0 +1,167 @@
+{
+  "generated_at": "2026-11-21T00:41:04+00:00",
+  "profile": {
+    "nome_area": "Gestão de Produtos",
+    "senioridade": "Júnior",
+    "modalidade": "Remoto",
+    "localizacao": "goiania",
+    "faixa_salarial": "2000",
+    "competencias_dominadas": "gestao de pessoas, trabalho em equipe",
+    "data_atualizacao": "2026-11-20 20:47:28",
+    "funcoes_alvo": [
+      "Analista de Produto",
+      "Product Owner Jr",
+      "Gerente de Produto Associado"
+    ],
+    "cargo_contexto": "Analista de Produto"
+  },
+  "answers": [
+    {
+      "numero": 1,
+      "tipo": "apresentacao",
+      "pergunta": "Fale sobre voce, sua trajetoria profissional e o que motivou sua candidatura.",
+      "resposta": "Sou gerente de projetos com experiencia em organizacao de equipes e entregas.",
+      "avaliacao": {
+        "nota": 2,
+        "pontos_fortes": [
+          "Resposta objetiva",
+          "Mostrou comunicacao"
+        ],
+        "melhorias": [
+          "Explique a situacao ou o desafio",
+          "Use verbos de acao e explique o que voce fez",
+          "Inclua um resultado mensuravel, quando possivel"
+        ]
+      }
+    },
+    {
+      "numero": 2,
+      "tipo": "vaga",
+      "pergunta": "Por que voce deseja atuar como Analista de Produto, na area de Gestão de Produtos?",
+      "resposta": "Quero atuar como Analista de Produto porque gosto de priorizar problemas e transformar necessidades em resultados.",
+      "avaliacao": {
+        "nota": 3,
+        "pontos_fortes": [
+          "Resposta objetiva",
+          "Indicou impacto ou resultado"
+        ],
+        "melhorias": [
+          "Explique a situacao ou o desafio",
+          "Use verbos de acao e explique o que voce fez"
+        ]
+      }
+    },
+    {
+      "numero": 3,
+      "tipo": "experiencia",
+      "pergunta": "Conte sobre uma situacao profissional ou academica em que voce precisou resolver um problema importante. Qual foi seu papel?",
+      "resposta": "Quando a equipe atrasou uma entrega, eu identifiquei o bloqueio, alinhei prioridades e implementei um plano de recuperacao.",
+      "avaliacao": {
+        "nota": 5,
+        "pontos_fortes": [
+          "Resposta objetiva",
+          "Apresentou contexto",
+          "Destacou sua responsabilidade",
+          "Mostrou comunicacao"
+        ],
+        "melhorias": [
+          "Inclua um resultado mensuravel, quando possivel"
+        ]
+      }
+    },
+    {
+      "numero": 4,
+      "tipo": "competencia",
+      "pergunta": "Para uma posicao júnior, quais competencias voce considera essenciais em Gestão de Produtos? De um exemplo pratico.",
+      "resposta": "Considero essenciais comunicacao, priorizacao e entendimento do cliente. Fiz isso em um projeto academico.",
+      "avaliacao": {
+        "nota": 3,
+        "pontos_fortes": [
+          "Resposta objetiva",
+          "Destacou sua responsabilidade"
+        ],
+        "melhorias": [
+          "Explique a situacao ou o desafio",
+          "Inclua um resultado mensuravel, quando possivel"
+        ]
+      }
+    },
+    {
+      "numero": 5,
+      "tipo": "resultado",
+      "pergunta": "Descreva uma entrega ou conquista da qual se orgulha. Como mediu o resultado?",
+      "resposta": "Conseguimos melhorar o prazo em 20 por cento e aumentar a satisfacao da equipe.",
+      "avaliacao": {
+        "nota": 4,
+        "pontos_fortes": [
+          "Resposta objetiva",
+          "Indicou impacto ou resultado",
+          "Mostrou comunicacao"
+        ],
+        "melhorias": [
+          "Explique a situacao ou o desafio",
+          "Use verbos de acao e explique o que voce fez"
+        ]
+      }
+    },
+    {
+      "numero": 6,
+      "tipo": "comportamental",
+      "pergunta": "Como voce reage quando recebe uma critica ou precisa trabalhar com uma equipe em desacordo?",
+      "resposta": "Eu escuto a critica, busco contexto e explico minha perspectiva de forma respeitosa.",
+      "avaliacao": {
+        "nota": 4,
+        "pontos_fortes": [
+          "Resposta objetiva",
+          "Apresentou contexto",
+          "Destacou sua responsabilidade"
+        ],
+        "melhorias": [
+          "Inclua um resultado mensuravel, quando possivel"
+        ]
+      }
+    },
+    {
+      "numero": 7,
+      "tipo": "problema",
+      "pergunta": "Imagine que uma entrega esteja atrasada e o stakeholder esteja pressionando. Como voce priorizaria e comunicaria a situacao?",
+      "resposta": "Eu priorizaria riscos, alinharia o alcance com stakeholders e comunicaria um novo prazo.",
+      "avaliacao": {
+        "nota": 4,
+        "pontos_fortes": [
+          "Resposta objetiva",
+          "Destacou sua responsabilidade",
+          "Mostrou comunicacao"
+        ],
+        "melhorias": [
+          "Explique a situacao ou o desafio",
+          "Inclua um resultado mensuravel, quando possivel"
+        ]
+      }
+    },
+    {
+      "numero": 8,
+      "tipo": "encerramento",
+      "pergunta": "Por que o recrutador deveria escolher voce e quais pontos gostaria de esclarecer sobre a vaga?",
+      "resposta": "Escolham-me pela capacidade de liderar equipes e aprender rapido. Gostaria de conhecer os desafios da vaga.",
+      "avaliacao": {
+        "nota": 3,
+        "pontos_fortes": [
+          "Resposta objetiva",
+          "Apresentou contexto",
+          "Mostrou comunicacao"
+        ],
+        "melhorias": [
+          "Use verbos de acao e explique o que voce fez",
+          "Inclua um resultado mensuravel, quando possivel"
+        ]
+      }
+    }
+  ],
+  "total_respostas": 8,
+  "nota_geral": 3.5,
+  "resumo": {
+    "ponto_forte": "Resposta objetiva",
+    "melhoria": "Inclua um resultado mensuravel, quando possivel"
+  }
+}

@@ -1,36 +1,46 @@
 # Procurador de Vagas
 
-Orquestrador de recolocação profissional com um agente **Maestro** que conhece o perfil do usuário e prepara o terreno para agentes especializados em busca de vagas, cursos e simulação de entrevistas.
+Orquestrador de recolocação profissional com um agente **Maestro** que conhece o perfil do usuário e delega tarefas para agentes especializados: **SCOUT** (vagas), **CURATOR** (cursos) e **COACH** (simulação de entrevistas).
 
 ## Funcionalidades
 
 - **Saudação inicial**: apresenta o Maestro e inicia o fluxo de atendimento.
 - **Verificação de perfil**: detecta se já existe um perfil salvo em `data/user-profile.md`.
-- **Quiz de perfil (5 perguntas)**: coleta área principal, senioridade, modalidade, localização e faixa salarial.
+- **Quiz de perfil**: coleta área principal, senioridade, modalidade, localização, faixa salarial e competências dominadas.
 - **Mapeamento automático de funções-alvo**: gera cargos compatíveis com base na área e senioridade informadas.
 - **Persistência em Markdown**: salva e carrega o perfil do usuário em `data/user-profile.md`.
 - **Menu principal interativo**:
-  - `A) Buscar vagas (SCOUT)` — reservado para fase futura
-  - `B) Buscar cursos (CURATOR)` — reservado para fase futura
-  - `C) Simular entrevista (COACH)` — reservado para fase futura
+  - `A) Buscar vagas (SCOUT)` — busca vagas com base no perfil
+  - `B) Buscar cursos (CURATOR)` — busca cursos na Alura e DIO
+  - `C) Simular entrevista (COACH)` — simulações personalizadas com feedback
   - `D) Refazer quiz`
   - `E) Ver perfil salvo`
   - `F) Sair`
-- **Preparação para agentes futuros**: estrutura pronta para integração dos agentes SCOUT, CURATOR e COACH.
+- **SCOUT**: busca e apresenta vagas de tecnologia com base no perfil do usuário.
+- **CURATOR**: busca cursos, permite seleção numerada e exibe detalhes da página.
+- **COACH**: realiza simulações de entrevista e fornece avaliação estruturada.
 
 ## Linguagens e Tecnologias
 
-- **Python 3**: linguagem principal da implementação (`maestro.py`).
-- **Markdown**: usado para documentação (`README.md`, `AGENTS.md`, `plano.md`) e persistência do perfil (`data/user-profile.md`).
+- **Python 3**: linguagem principal da implementação (`maestro.py`, `curator.py`, `coach.py`).
+- **Markdown**: documentação (`README.md`, `AGENTS.md`, planos) e persistência do perfil (`data/user-profile.md`).
+- **Firecrawl**: integração para busca/coleta de conteúdo web (SCOUT/CURATOR), configurada via `.env`.
 
 ## Estrutura do Projeto
 
-- `maestro.py` — implementação do agente Maestro (fluxo principal, quiz, menu e persistência).
-- `AGENTS.md` — especificação do agente orquestrador e diretrizes de comportamento.
-- `plano.md` — plano de arquitetura e evolução do projeto.
-- `data/user-profile.md` — perfil salvo do usuário (gerado após o quiz).
-- `.env.example` — exemplo de variáveis de ambiente.
-- `requirements.txt` — dependências do projeto.
+- `maestro.py` — orquestrador principal (fluxo, quiz, menu, delegação).
+- `curator.py` — agente CURATOR (busca de cursos).
+- `coach.py` — agente COACH (simulação de entrevistas).
+- `AGENTS.md` — especificação dos agentes e diretrizes de comportamento.
+- `plano.md` — plano principal do orquestrador.
+- `plano-aula-2.md` — plano do agente SCOUT.
+- `plano-aula-3.md` — plano do agente CURATOR.
+- `.github/skills/scout/SKILL.md` — procedimento operacional do SCOUT.
+- `.github/skills/curator/SKILL.md` — procedimento operacional do CURATOR.
+- `.github/skills/coach/SKILL.md` — procedimento operacional do COACH.
+- `data/` — perfil do usuário e resultados gerados (jobs/courses/interviews).
+- `.env.example` — modelo de configuração (ex.: `FIRECRAWL_API_KEY`).
+- `requirements.txt` — dependências Python.
 
 ## Como Executar
 
@@ -42,7 +52,15 @@ Orquestrador de recolocação profissional com um agente **Maestro** que conhece
    pip install -r requirements.txt
    ```
 
-4. Execute o Maestro:
+4. Configure as variáveis de ambiente:
+
+   ```bash
+   copy .env.example .env
+   ```
+
+   Edite `.env` e defina `FIRECRAWL_API_KEY`.
+
+5. Execute o Maestro:
 
    ```bash
    python maestro.py
@@ -50,5 +68,8 @@ Orquestrador de recolocação profissional com um agente **Maestro** que conhece
 
 ## Status do Projeto
 
-- **Fase 1 (concluída)**: Maestro funcional com saudação, quiz, persistência de perfil, menu principal e preparação para agentes futuros.
-- **Fases futuras**: implementação dos agentes SCOUT (busca de vagas), CURATOR (cursos) e COACH (simulação de entrevistas).
+- **Fase 1**: Maestro com saudação, quiz, persistência de perfil e menu principal.
+- **Fase 2**: SCOUT integrado para busca de vagas.
+- **Fase 3**: CURATOR integrado para busca de cursos.
+- **Fase 4**: COACH integrado para simulação de entrevistas.
+- **Evolução futura**: melhorias de persistência, ranking/recomendações e refinamento dos agentes.

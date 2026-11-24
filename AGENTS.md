@@ -11,7 +11,7 @@ Este documento descreve o **Maestro**, o agente orquestrador principal que receb
 - **Carrega e salva perfil do usuário** em `data/user-profile.md`
 - **Aplica quiz de perfil** para coletar preferências
 - **Exibe menu principal** com 6 opções (A-F)
-- **Prepara terreno** para agentes futuros (SCOUT, CURATOR, COACH)
+- **Delega tarefas ao SCOUT, CURATOR e prepara o COACH**
 
 ### Fluxo de Trabalho
 1. **Saudação Inicial**
@@ -30,6 +30,7 @@ Este documento descreve o **Maestro**, o agente orquestrador principal que receb
    - Pergunta 3: Modalidade preferida (4 opções)
    - Pergunta 4: Localização preferida (texto livre)
    - Pergunta 5: Faixa salarial desejada (texto livre)
+   - Pergunta 6: Competências já dominadas (texto livre, opcional)
 
 4. **Menu Principal**
    ```
@@ -42,16 +43,23 @@ Este documento descreve o **Maestro**, o agente orquestrador principal que receb
    F) Sair
    ```
 
-5. **Delegação para Agentes Futuros**
-   - **SCOUT**: Busca vagas de tecnologia (futuro)
-   - **CURATOR**: Busca cursos e trilhas de aprendizado (futuro)
-   - **COACH**: Simulações de entrevista e avaliação profissional (futuro)
+5. **Delegação para Agentes Especializados**
+   - **SCOUT**: Implementado na opção A e busca vagas com Firecrawl
+   - **CURATOR**: Implementado na opção B e busca cursos na Alura e DIO
+   - **COACH**: Implementado na opção C e realiza simulações personalizadas
 
 ## Detalhes Técnicos
 
 ### Arquivos Criados
 - `data/user-profile.md`: Arquivo Markdown que armazena o perfil do usuário
 - `maestro.py`: Implementação Python do agente Maestro
+- `curator.py`: Implementação Python do agente CURATOR
+- `coach.py`: Implementação Python do agente COACH
+- `requirements.txt`: Dependências Python do projeto
+- `.env.example`: Modelo de configuração da chave Firecrawl
+- `.github/skills/scout/SKILL.md`: Procedimento operacional do SCOUT
+- `.github/skills/curator/SKILL.md`: Procedimento operacional do CURATOR
+- `.github/skills/coach/SKILL.md`: Procedimento operacional do COACH
 
 ### Estrutura de Dados do Perfil
 ```markdown
@@ -60,6 +68,7 @@ senioridade: [júnior/ pleno/ sênior]
 modalidade: [remoto/ híbrido/ presencial/ tanto faz]
 localizacao: [localização selecionada]
 faixa_salarial: [faixa salarial selecionada]
+competencias_dominadas: [competências separadas por vírgula ou Nenhuma]
 funcoes_alvo:
   - [função 1]
   - [função 2]
@@ -73,14 +82,15 @@ data_atualizacao: [data e hora]
 - Quiz de 5 perguntas com validação
 - Persistência em Markdown
 - Geração automática de funções-alvo
+- Persistência das competências dominadas no perfil
 - Visualização de perfil salvo
 - Menu principal com 6 opções
 - Refazer quiz (opção D)
-- Preparação para integração dos agentes SCOUT, CURATOR e COACH
+- Busca de vagas integrada ao SCOUT pela opção A
+- Busca de cursos integrada ao CURATOR pela opção B
+- Seleção numerada de cursos com abertura dos detalhes da página
+- Simulação de entrevistas integrada ao COACH pela opção C
+- Avaliação de respostas e feedback estruturado
 
-## Próximos Passos (Fases Futuras)
-1. **Implementar o agente SCOUT** para buscar vagas de tecnologia
-2. **Implementar o agente CURATOR** para buscar cursos e trilhas de aprendizado
-3. **Implementar o agente COACH** para simulações de entrevista
-4. **Adicionar funcionalidades de busca** nas opções A-C
-5. **Melhorar persistência** com banco de dados (opcional)
+## Próximos Passos
+1. Melhorar persistência com banco de dados (opcional)
